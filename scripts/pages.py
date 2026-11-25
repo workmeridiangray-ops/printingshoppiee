@@ -274,7 +274,7 @@ page('about.html','About us — Print Haus','25 years in print and 34 branches a
     <h1 style="font-size:44px">Twenty-five years of getting print right.</h1>
     <p class="muted" style="font-size:17px">Print Haus is the online home of a printing business that has served Indian customers for 25 years through 34 branches. Any brand — a home baker or a national retailer — can now order the same quality with the same care, online.</p>
   </div>
-  <div class="art tint" style="flex:1 1 380px;height:320px;border-radius:6px" id="about-art"></div>
+  <div class="art tint" style="flex:0 1 380px;aspect-ratio:1;border-radius:6px" id="about-art"></div>
 </div>
 <section class="band" style="border-top:1px solid var(--line)"><div class="wrap section">
   <div class="steps">
