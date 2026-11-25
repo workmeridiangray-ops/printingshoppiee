@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bulk & B2B printing — Print Haus</title>
+<meta name="description" content="Trade pricing for 1,000+ pieces. Get a quote within one working day.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231E5066'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23B1C8A3'/%3E%3C/svg%3E">
+</head>
+<body>
+<div id="site-header"></div>
+<main id="main">
+
+<section style="background:var(--lagoon);color:#fff"><div class="wrap section" style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+  <div style="flex:1 1 420px;display:flex;flex-direction:column;gap:16px">
+    <span class="eyebrow" style="color:var(--sage-light)">For businesses</span>
+    <h1 style="font-size:44px">Trade pricing for brands that print at scale.</h1>
+    <p style="opacity:.85;font-size:17px">From 1,000 to 1,00,000 pieces — one account manager, one GST invoice, consistent colour across every run and branch.</p>
+    <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;opacity:.92"><li>Dedicated account manager on WhatsApp</li><li>Physical sample before large runs</li><li>Delivery to multiple locations, or pickup at 34 branches</li></ul>
+  </div>
+  <form id="bulk-form" class="panel" style="flex:1 1 400px;color:var(--ink);display:flex;flex-direction:column;gap:14px">
+    <h2 style="font-size:24px">Get a bulk quote</h2>
+    <div class="form-grid">
+      <label class="field">Your name<input name="name" required></label>
+      <label class="field">Company<input name="company"></label>
+      <label class="field">Mobile<input name="phone" type="tel" required></label>
+      <label class="field">GSTIN (optional)<input name="gstin"></label>
+      <label class="field">Product<input name="product" required placeholder="e.g. mailer boxes"></label>
+      <label class="field">Quantity<input name="qty" required placeholder="e.g. 5,000"></label>
+    </div>
+    <label class="field">Details<textarea name="notes" rows="3" placeholder="Size, material, deadline, delivery locations…"></textarea></label>
+    <button class="btn btn-lg" type="submit">Send enquiry on WhatsApp</button>
+  </form>
+</div></section>
+<div class="wrap section"><div class="section-head"><h2>Bulk-priced products</h2><a class="eyebrow" href="shop.html?cat=Bulk%20%2F%20B2B">View all →</a></div><div class="grid" id="bulk-grid"></div></div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  PH.catalog().then(function(c){document.getElementById('bulk-grid').innerHTML=c.filter(function(x){return x.cat==='Bulk / B2B'}).map(PH.card).join('');});
+  document.getElementById('bulk-form').addEventListener('submit',function(e){e.preventDefault();var f=new FormData(this),t='Bulk enquiry\n';f.forEach(function(v,k){if(v)t+=k+': '+v+'\n'});window.open('https://wa.me/'+PH.S.whatsapp+'?text='+encodeURIComponent(t),'_blank');PH.toast('Opening WhatsApp…');});
+});
+</script>
+</main>
+<div id="site-footer"></div>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
