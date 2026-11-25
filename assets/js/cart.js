@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const t = totals(items);
     document.getElementById('cart-items').innerHTML = items.length ? items.map((i) => `
       <article class="line-item">
-        <div class="art tint">${art(i.kind)}</div>
+        <div class="art tint">${i.img ? `<img src="assets/img/products/thumb-${esc(i.img)}" alt="" style="width:100%;height:100%;object-fit:cover">` : art(i.kind)}</div>
         <div class="info">
           <div class="top"><h2 style="font-size:18px">${esc(i.name)}</h2><strong>${inr(i.price)}</strong></div>
           <span class="muted" style="font-size:14px">${i.qty.toLocaleString('en-IN')} pcs · ${esc(i.size)}${i.options ? ' · ' + esc(i.options.replace(/ \| /g, ' · ')) : ''}</span>

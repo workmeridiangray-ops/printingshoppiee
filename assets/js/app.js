@@ -90,12 +90,19 @@
 
   // ---- data ----
   let catalogP = null;
-  const catalog = () => catalogP || (catalogP = fetch('data/catalog.json').then((r) => r.json()));
+  const catalog = () => catalogP || (catalogP = Promise.all([
+    fetch('data/catalog.json').then((r) => r.json()),
+    fetch('data/images.json').then((r) => r.ok ? r.json() : {}).catch(() => ({}))
+  ]).then(([c, imgs]) => c.map((x) => ({ ...x, imgs: imgs[x.slug] || [] }))));
+  const imgUrl = (f, thumb) => 'assets/img/products/' + (thumb ? 'thumb-' : '') + f;
+  const visual = (c, thumb) => c.imgs && c.imgs.length
+    ? `<img src="${imgUrl(c.imgs[0], thumb)}" alt="${esc(c.name)}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover">`
+    : art(c.kind);
   const prices = (file) => fetch('data/prices/' + encodeURIComponent(file) + '.json').then((r) => { if (!r.ok) throw new Error('missing'); return r.json(); });
 
   function card(c) {
     return `<a class="card" href="product.html?p=${encodeURIComponent(c.slug)}">
-      <div class="art">${art(c.kind)}</div>
+      <div class="art">${visual(c, true)}</div>
       <div class="card-body">
         <span class="card-cat">${esc(c.cat)}</span>
         <span class="card-name">${esc(c.name)}</span>
@@ -110,5 +117,5 @@
     updateCount();
   });
 
-  window.PH = { S, CATS, esc, inr, price, catUrl, cart, art, toast, catalog, prices, card };
+  window.PH = { S, CATS, esc, inr, price, catUrl, cart, art, toast, catalog, prices, card, imgUrl, visual };
 })();
