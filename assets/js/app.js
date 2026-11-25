@@ -59,10 +59,13 @@
       <a class="cart-link" href="cart.html">Cart <span class="cart-count" data-cart-count>0</span></a>
     </div>
   </div>
-  <nav class="catnav" aria-label="Product categories"><div class="wrap">
-    ${CATS.slice(0, 7).map((c) => `<a href="${catUrl(c)}">${esc(c)}</a>`).join('')}
-    <a href="shop.html">All products</a>
-    <a class="bulk" href="bulk.html">Bulk pricing →</a>
+  <nav class="catnav" aria-label="Product categories"><div class="wrap catnav-row">
+    ${CATS.slice(0, 7).map((c, i) => `<div class="dd" data-dd="${i}">
+      <a class="dd-trigger" href="${catUrl(c)}" aria-haspopup="true" aria-expanded="false">${esc(c)}<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
+      <div class="dd-panel" data-cat="${esc(c)}"><div class="wrap dd-inner"><span class="muted">Loading…</span></div></div>
+    </div>`).join('')}
+    <a class="plain" href="shop.html">All products</a>
+    <a class="plain bulk" href="bulk.html">Bulk pricing →</a>
   </div></nav>
 </header>`;
   }
@@ -82,6 +85,37 @@
     <span style="opacity:.75">© ${new Date().getFullYear()} ${esc(S.legalName)} · GSTIN ${esc(S.gstin)}</span>
   </div>
 </div></footer>`;
+  }
+  function initMenus() {
+    const dds = document.querySelectorAll('.dd');
+    if (!dds.length) return;
+    const closeAll = (except) => dds.forEach((d) => { if (d !== except) { d.classList.remove('open'); d.querySelector('.dd-trigger').setAttribute('aria-expanded', 'false'); } });
+    dds.forEach((d) => {
+      const t = d.querySelector('.dd-trigger');
+      // touch / click: first tap opens the menu, second tap goes to the category
+      t.addEventListener('click', (e) => {
+        if (window.matchMedia('(hover: hover)').matches) return;
+        if (!d.classList.contains('open')) { e.preventDefault(); closeAll(d); d.classList.add('open'); t.setAttribute('aria-expanded', 'true'); }
+      });
+      d.addEventListener('mouseenter', () => t.setAttribute('aria-expanded', 'true'));
+      d.addEventListener('mouseleave', () => { t.setAttribute('aria-expanded', 'false'); d.classList.remove('open'); });
+      d.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeAll(); t.focus(); } });
+    });
+    document.addEventListener('click', (e) => { if (!e.target.closest('.dd')) closeAll(); });
+    catalog().then((all) => {
+      document.querySelectorAll('.dd-panel').forEach((p) => {
+        const cat = p.dataset.cat;
+        const list = all.filter((x) => x.cat === cat).sort((a, b) => (b.imgs.length ? 1 : 0) - (a.imgs.length ? 1 : 0) || a.name.localeCompare(b.name));
+        const feat = list.filter((x) => x.imgs.length).slice(0, 2);
+        const names = list.slice().sort((a, b) => a.name.localeCompare(b.name));
+        p.querySelector('.dd-inner').innerHTML = `
+          <div class="dd-list">
+            <div class="dd-head"><strong>${esc(cat)}</strong><a href="${catUrl(cat)}">View all ${list.length} →</a></div>
+            <ul>${names.map((x) => `<li><a href="product.html?p=${encodeURIComponent(x.slug)}">${esc(x.name)}<small>from ${inr(price(x.from))}</small></a></li>`).join('')}</ul>
+          </div>
+          ${feat.length ? `<div class="dd-feat">${feat.map((x) => `<a href="product.html?p=${encodeURIComponent(x.slug)}"><span class="sq"><img src="${imgUrl(x.imgs[0], true)}" alt="" loading="lazy"></span><strong>${esc(x.name)}</strong><small>from ${inr(price(x.from))}</small></a>`).join('')}</div>` : ''}`;
+      });
+    });
   }
   function toast(msg) {
     const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = msg;
@@ -115,6 +149,7 @@
     const h = document.getElementById('site-header'); if (h) h.innerHTML = header();
     const f = document.getElementById('site-footer'); if (f) f.innerHTML = footer();
     updateCount();
+    initMenus();
   });
 
   window.PH = { S, CATS, esc, inr, price, catUrl, cart, art, toast, catalog, prices, card, imgUrl, visual };

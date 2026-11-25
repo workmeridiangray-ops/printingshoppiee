@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('checkout-summary').innerHTML = `
       <h2 style="font-size:22px;margin-bottom:14px">Your order</h2>
       <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:14px">${items.map((i) => `
-        <div style="display:flex;gap:12px;align-items:center"><div class="art tint" style="width:64px;height:56px;border-radius:4px;flex:none">${i.img ? `<img src="assets/img/products/thumb-${esc(i.img)}" alt="" style="width:100%;height:100%;object-fit:cover">` : art(i.kind)}</div>
+        <div style="display:flex;gap:12px;align-items:center"><div class="art tint" style="width:60px;height:60px;border-radius:4px;flex:none">${i.img ? `<img src="assets/img/products/thumb-${esc(i.img)}" alt="" style="width:100%;height:100%;object-fit:cover">` : art(i.kind)}</div>
         <div style="flex:1;min-width:0;font-size:14px"><strong>${esc(i.name)}</strong><br><span class="muted">${i.qty.toLocaleString('en-IN')} pcs · ${esc(i.size)}</span></div><strong style="font-size:14px">${inr(i.price)}</strong></div>`).join('')}</div>
       <div class="sum-rows" style="font-size:14px;border-top:1px solid var(--line);padding-top:14px"><div><span class="muted">Subtotal</span><span>${inr(sub)}</span></div><div><span class="muted">GST</span><span>${inr(gst)}</span></div><div><span class="muted">Delivery</span><span>${shipFee() ? inr(shipFee()) : 'Free'}</span></div></div>
       <div class="sum-total"><strong>Total</strong><strong>${inr(total())}</strong></div>`;
