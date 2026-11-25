@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const { cart, inr, esc, art, S, toast } = PH;
+  const { cart, inr, esc, art, S, toast, api, me } = PH;
   const form = document.getElementById('checkout-form');
   const items = cart.items();
   if (!items.length) { location.href = 'cart.html'; return; }
@@ -15,8 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const shipFee = () => ship === 'express' ? S.expressFee : ship === 'pickup' ? 0 : (sub >= S.freeShippingAbove ? 0 : S.shippingFee);
   const total = () => sub + gst + shipFee();
 
-  // prefill from saved profile
-  try { const u = JSON.parse(localStorage.getItem('ph_user')); if (u) ['name', 'phone', 'email'].forEach((k) => { if (u[k]) form.elements[k].value = u[k]; }); } catch (e) {}
+  // prefill from signed-in account
+  me().then((u) => { if (u) ['name', 'phone', 'email'].forEach((k) => { if (u[k] && !form.elements[k].value) form.elements[k].value = u[k]; }); });
 
   document.getElementById('ship-options').innerHTML = SHIPS.map((s) => `
     <label class="radio-card"><input type="radio" name="ship" value="${s.id}" ${s.id === ship ? 'checked' : ''}><span><strong>${s.t}</strong><small>${s.d}</small></span><strong id="fee-${s.id}"></strong></label>`).join('');
@@ -43,20 +43,22 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   render();
 
-  function saveOrder(payment) {
-    const id = 'PH' + Date.now().toString().slice(-7);
+  async function saveOrder(payment) {
     const f = new FormData(form);
-    const order = { id, date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }), items, total: total(), ship, payment, status: 'Awaiting proof', customer: Object.fromEntries(f.entries()) };
-    try {
-      const all = JSON.parse(localStorage.getItem('ph_orders')) || []; all.push(order); localStorage.setItem('ph_orders', JSON.stringify(all));
-      localStorage.setItem('ph_user', JSON.stringify({ name: f.get('name'), phone: f.get('phone'), email: f.get('email') }));
-    } catch (e) {}
-    return order;
+    const customer = Object.fromEntries(f.entries());
+    delete customer.ship;
+    const payload = { customer, items, totals: { sub, gst, ship: shipFee(), total: total() }, ship, payment };
+    let id;
+    try { id = (await api('/api/orders', { method: 'POST', body: payload })).id; }
+    catch (e) { id = 'PH' + Date.now().toString().slice(-7); }
+    return { id, items, total: total(), ship, payment, customer };
   }
   function orderText(o) {
     const c = o.customer;
     let t = `New order ${o.id}\n\n`;
     o.items.forEach((i, n) => { t += `${n + 1}. ${i.name} — ${i.qty} pcs, ${i.size}${i.options ? ', ' + i.options.replace(/ \| /g, ', ') : ''}${i.design ? ' (design service)' : ''} — ₹${i.price}\n`; });
+    const arts = o.items.filter((i) => i.uploadName).map((i) => i.uploadName);
+    if (arts.length) t += `\nArtwork uploaded: ${arts.join(', ')}`;
     t += `\nSubtotal ₹${sub} + GST ₹${gst} + delivery ₹${shipFee()} = ₹${o.total}\nDelivery: ${ship}\nPayment: ${o.payment}\n\n${c.name}, ${c.phone}, ${c.email}\n${c.address}, ${c.city}, ${c.state} ${c.pincode}`;
     if (c.gstin) t += `\nGSTIN: ${c.gstin} (${c.company || ''})`;
     return t;
@@ -66,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     location.href = 'order-placed.html?id=' + encodeURIComponent(o.id);
   }
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!form.checkValidity()) { form.reportValidity(); return; }
     if (online) {
@@ -77,15 +79,18 @@ document.addEventListener('DOMContentLoaded', () => {
           description: items.length + ' print item(s)',
           prefill: { name: f.get('name'), email: f.get('email'), contact: f.get('phone') },
           theme: { color: '#1E5066' },
-          handler: (resp) => { const o = saveOrder('Paid online (' + resp.razorpay_payment_id + ')'); window.open('https://wa.me/' + S.whatsapp + '?text=' + encodeURIComponent(orderText(o)), '_blank'); finish(o); }
+          handler: async (resp) => { const o = await saveOrder('Paid online (' + resp.razorpay_payment_id + ')'); window.open('https://wa.me/' + S.whatsapp + '?text=' + encodeURIComponent(orderText(o)), '_blank'); finish(o); }
         });
         rzp.open();
       };
       if (window.Razorpay) go();
       else { const s = document.createElement('script'); s.src = 'https://checkout.razorpay.com/v1/checkout.js'; s.onload = go; s.onerror = () => toast('Payment could not load. Please try again.'); document.body.appendChild(s); }
     } else {
-      const o = saveOrder('Payment link on WhatsApp');
-      window.open('https://wa.me/' + S.whatsapp + '?text=' + encodeURIComponent(orderText(o)), '_blank');
+      const btn = document.getElementById('pay-btn'); btn.disabled = true; btn.textContent = 'Placing order…';
+      const waWin = window.open('', '_blank');
+      const o = await saveOrder('Payment link on WhatsApp');
+      const waUrl = 'https://wa.me/' + S.whatsapp + '?text=' + encodeURIComponent(orderText(o));
+      if (waWin) waWin.location.href = waUrl; else window.open('https://wa.me/' + S.whatsapp + '?text=' + encodeURIComponent(orderText(o)), '_blank');
       finish(o);
     }
   });

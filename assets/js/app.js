@@ -13,6 +13,7 @@
   const cart = {
     items() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } },
     save(list) { try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {} updateCount(); },
+    update(id, patch) { cart.save(cart.items().map((i) => i.id === id ? { ...i, ...patch } : i)); },
     add(item) { const l = cart.items(); item.id = Date.now() + '-' + Math.random().toString(36).slice(2, 7); l.push(item); cart.save(l); },
     remove(id) { cart.save(cart.items().filter((i) => i.id !== id)); },
     clear() { cart.save([]); }
@@ -55,7 +56,7 @@
       <button type="submit">Search</button>
     </form>
     <div class="header-actions">
-      <a href="login.html">Sign in</a>
+      <a href="login.html" data-account-link>Sign in</a>
       <a class="cart-link" href="cart.html">Cart <span class="cart-count" data-cart-count>0</span></a>
     </div>
   </div>
@@ -88,6 +89,31 @@
     document.body.appendChild(t); setTimeout(() => t.remove(), 2600);
   }
 
+  // ---- backend API ----
+  async function api(path, opts = {}) {
+    const o = { credentials: 'same-origin', ...opts, headers: { ...(opts.body && !(opts.body instanceof FormData) ? { 'content-type': 'application/json' } : {}), ...(opts.headers || {}) } };
+    if (o.body && !(o.body instanceof FormData) && typeof o.body !== 'string') o.body = JSON.stringify(o.body);
+    let r;
+    try { r = await fetch(path, o); } catch (e) { throw new Error('Could not reach the server. Check your connection and try again.'); }
+    let data = {}; try { data = await r.json(); } catch (e) {}
+    if (!r.ok) { const err = new Error(data.error || 'Something went wrong. Please try again.'); err.status = r.status; throw err; }
+    return data;
+  }
+  let meP = null;
+  const me = (fresh) => (!fresh && meP) || (meP = api('/api/auth/me').then((d) => d.user).catch(() => null));
+  function uploadFile(file, onProgress) {
+    return new Promise((resolve, reject) => {
+      const fd = new FormData(); fd.append('file', file);
+      const x = new XMLHttpRequest();
+      x.open('POST', '/api/uploads');
+      x.upload.onprogress = (e) => { if (e.lengthComputable && onProgress) onProgress(Math.round(e.loaded / e.total * 100)); };
+      x.onload = () => { let d = {}; try { d = JSON.parse(x.responseText); } catch (e) {} x.status < 300 ? resolve(d) : reject(new Error(d.error || 'Upload failed. Please try again.')); };
+      x.onerror = () => reject(new Error('Upload failed. Check your connection and try again.'));
+      x.send(fd);
+    });
+  }
+  const fmtSize = (b) => b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+
   // ---- data ----
   let catalogP = null;
   const catalog = () => catalogP || (catalogP = fetch('data/catalog.json').then((r) => r.json()));
@@ -108,7 +134,11 @@
     const h = document.getElementById('site-header'); if (h) h.innerHTML = header();
     const f = document.getElementById('site-footer'); if (f) f.innerHTML = footer();
     updateCount();
+    me().then((u) => {
+      const a = document.querySelector('[data-account-link]');
+      if (u && a) { a.textContent = 'Hi, ' + u.name.split(' ')[0]; a.href = 'account.html'; }
+    });
   });
 
-  window.PH = { S, CATS, esc, inr, price, catUrl, cart, art, toast, catalog, prices, card };
+  window.PH = { S, CATS, esc, inr, price, catUrl, cart, art, toast, catalog, prices, card, api, me, uploadFile, fmtSize };
 })();

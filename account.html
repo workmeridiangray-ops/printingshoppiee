@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>My account — Print Haus</title>
-<meta name="description" content="Your orders, proofs and invoices.">
+<meta name="description" content="Your orders, artwork and details."><meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
@@ -16,10 +16,21 @@
 
 <div class="wrap section">
   <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:24px">
-    <div><p class="muted" id="hello">Welcome</p><h1 style="font-size:34px">My orders</h1></div>
-    <a class="btn" href="shop.html">Start a new order</a>
+    <div><p class="muted" id="hello">Loading…</p><h1 style="font-size:34px">My account</h1></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" href="shop.html">Start a new order</a><button class="btn btn-outline" id="logout">Sign out</button></div>
   </div>
-  <div id="orders" style="display:flex;flex-direction:column;gap:14px"></div>
+  <div class="two-col" style="padding-top:0">
+    <div class="main"><h2 style="font-size:22px">Orders</h2><div id="orders" style="display:flex;flex-direction:column;gap:14px"></div></div>
+    <aside style="display:flex;flex-direction:column;gap:16px">
+      <form class="panel" id="profile" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px">Your details</h2>
+        <label class="field">Name<input name="name" required></label><label class="field">Mobile<input name="phone" type="tel"></label>
+        <p class="muted" style="font-size:14px" id="email-line"></p><button class="btn" type="submit">Save</button></form>
+      <form class="panel" id="pw" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px">Change password</h2>
+        <label class="field">Current password<input name="current" type="password" autocomplete="current-password"></label>
+        <label class="field">New password<input name="next" type="password" minlength="8" required autocomplete="new-password"></label>
+        <button class="btn btn-outline" type="submit">Update password</button></form>
+    </aside>
+  </div>
 </div>
 </main>
 <div id="site-footer"></div>

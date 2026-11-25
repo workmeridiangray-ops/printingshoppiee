@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sign in or create an account — Print Haus</title>
-<meta name="description" content="Sign in to approve proofs, reorder and download invoices.">
+<meta name="description" content="Sign in to approve proofs, reorder and download invoices."><meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
@@ -17,26 +17,53 @@
 <div class="wrap section" style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
   <div style="flex:1 1 380px;background:var(--lagoon);color:#fff;border-radius:6px;padding:40px;display:flex;flex-direction:column;gap:18px">
     <h1 style="font-size:34px">Your print room, always open.</h1>
-    <p style="opacity:.85">Approve proofs online · reorder in one tap · track every order · download GST invoices.</p>
+    <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;opacity:.9"><li>See every order and its status</li><li>Your uploaded artwork, saved for reorders</li><li>Faster checkout with saved details</li></ul>
   </div>
   <div style="flex:1 1 380px;max-width:460px;display:flex;flex-direction:column;gap:16px">
-    <h2 style="font-size:28px">Sign in or create an account</h2>
-    <p class="muted">Enter your details. We'll keep your orders and saved designs together.</p>
-    <form id="login-form" style="display:flex;flex-direction:column;gap:14px">
+    <div role="tablist" aria-label="Account" style="display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:6px;background:var(--soft)" id="auth-tabs">
+      <button type="button" role="tab" data-mode="signin" class="btn btn-light" style="min-height:44px">Sign in</button>
+      <button type="button" role="tab" data-mode="signup" class="btn btn-light" style="min-height:44px">Create account</button>
+    </div>
+    <div id="google-signin"><!-- Google sign-in button goes here --></div>
+    <div id="auth-msg" class="notice" hidden role="alert"></div>
+
+    <form id="f-signin" data-mode="signin" style="display:flex;flex-direction:column;gap:14px">
+      <h2 style="font-size:26px">Welcome back</h2>
+      <label class="field">Email<input name="email" type="email" required autocomplete="email"></label>
+      <label class="field">Password<input name="password" type="password" required autocomplete="current-password"></label>
+      <button class="btn btn-lg" type="submit">Sign in</button>
+      <button type="button" class="linkbtn" data-go="forgot" style="align-self:flex-start">Forgot password?</button>
+    </form>
+
+    <form id="f-signup" data-mode="signup" hidden style="display:flex;flex-direction:column;gap:14px">
+      <h2 style="font-size:26px">Create your account</h2>
       <label class="field">Full name<input name="name" required autocomplete="name"></label>
-      <label class="field">Mobile number<input name="phone" type="tel" required autocomplete="tel"></label>
-      <label class="field">Email<input name="email" type="email" autocomplete="email"></label>
-      <button class="btn btn-lg" type="submit">Continue</button>
+      <label class="field">Email<input name="email" type="email" required autocomplete="email"></label>
+      <label class="field">Mobile number<input name="phone" type="tel" autocomplete="tel" placeholder="98xxx xxxxx"></label>
+      <label class="field">Password<input name="password" type="password" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters"></label>
+      <button class="btn btn-lg" type="submit">Create account</button>
+    </form>
+
+    <form id="f-forgot" data-mode="forgot" hidden style="display:flex;flex-direction:column;gap:14px">
+      <h2 style="font-size:26px">Reset your password</h2>
+      <p class="muted">Enter your email and we'll send you a reset link.</p>
+      <label class="field">Email<input name="email" type="email" required autocomplete="email"></label>
+      <button class="btn btn-lg" type="submit">Send reset link</button>
+      <button type="button" class="linkbtn" data-go="signin" style="align-self:flex-start">Back to sign in</button>
+    </form>
+
+    <form id="f-reset" data-mode="reset" hidden style="display:flex;flex-direction:column;gap:14px">
+      <h2 style="font-size:26px">Choose a new password</h2>
+      <label class="field">New password<input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+      <button class="btn btn-lg" type="submit">Save password</button>
     </form>
     <p class="muted" style="font-size:13px">By continuing you agree to our <a href="help.html#policies" style="text-decoration:underline">terms and privacy policy</a>.</p>
   </div>
 </div>
-<script>
-document.getElementById('login-form').addEventListener('submit',function(e){e.preventDefault();var f=new FormData(this);try{localStorage.setItem('ph_user',JSON.stringify({name:f.get('name'),phone:f.get('phone'),email:f.get('email')}));}catch(x){}location.href='account.html';});
-</script>
 </main>
 <div id="site-footer"></div>
 <script src="assets/js/config.js"></script>
 <script src="assets/js/app.js"></script>
+<script src="assets/js/login.js"></script>
 </body>
 </html>

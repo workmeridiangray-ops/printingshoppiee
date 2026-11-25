@@ -1,0 +1,16 @@
+{
+  "name": "printingshoppiee",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Print Haus online printing store — static site + Node backend (accounts, artwork uploads, orders)",
+  "main": "server/index.js",
+  "scripts": { "start": "node server/index.js" },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.1.0",
+    "multer": "^2.0.2",
+    "pg": "^8.13.1"
+  }
+}

@@ -9,7 +9,7 @@ def page(fn,title,desc,body,scripts=()):
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-<meta name="description" content="{desc}">
+<meta name="description" content="{desc}">{"<meta name=\"robots\" content=\"noindex\">" if fn in ("admin.html","account.html","login.html","checkout.html","order-placed.html") else ""}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
@@ -173,31 +173,68 @@ page('login.html','Sign in or create an account — Print Haus','Sign in to appr
 <div class="wrap section" style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
   <div style="flex:1 1 380px;background:var(--lagoon);color:#fff;border-radius:6px;padding:40px;display:flex;flex-direction:column;gap:18px">
     <h1 style="font-size:34px">Your print room, always open.</h1>
-    <p style="opacity:.85">Approve proofs online · reorder in one tap · track every order · download GST invoices.</p>
+    <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;opacity:.9"><li>See every order and its status</li><li>Your uploaded artwork, saved for reorders</li><li>Faster checkout with saved details</li></ul>
   </div>
   <div style="flex:1 1 380px;max-width:460px;display:flex;flex-direction:column;gap:16px">
-    <h2 style="font-size:28px">Sign in or create an account</h2>
-    <p class="muted">Enter your details. We'll keep your orders and saved designs together.</p>
-    <form id="login-form" style="display:flex;flex-direction:column;gap:14px">
+    <div role="tablist" aria-label="Account" style="display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:6px;background:var(--soft)" id="auth-tabs">
+      <button type="button" role="tab" data-mode="signin" class="btn btn-light" style="min-height:44px">Sign in</button>
+      <button type="button" role="tab" data-mode="signup" class="btn btn-light" style="min-height:44px">Create account</button>
+    </div>
+    <div id="google-signin"><!-- Google sign-in button goes here --></div>
+    <div id="auth-msg" class="notice" hidden role="alert"></div>
+
+    <form id="f-signin" data-mode="signin" style="display:flex;flex-direction:column;gap:14px">
+      <h2 style="font-size:26px">Welcome back</h2>
+      <label class="field">Email<input name="email" type="email" required autocomplete="email"></label>
+      <label class="field">Password<input name="password" type="password" required autocomplete="current-password"></label>
+      <button class="btn btn-lg" type="submit">Sign in</button>
+      <button type="button" class="linkbtn" data-go="forgot" style="align-self:flex-start">Forgot password?</button>
+    </form>
+
+    <form id="f-signup" data-mode="signup" hidden style="display:flex;flex-direction:column;gap:14px">
+      <h2 style="font-size:26px">Create your account</h2>
       <label class="field">Full name<input name="name" required autocomplete="name"></label>
-      <label class="field">Mobile number<input name="phone" type="tel" required autocomplete="tel"></label>
-      <label class="field">Email<input name="email" type="email" autocomplete="email"></label>
-      <button class="btn btn-lg" type="submit">Continue</button>
+      <label class="field">Email<input name="email" type="email" required autocomplete="email"></label>
+      <label class="field">Mobile number<input name="phone" type="tel" autocomplete="tel" placeholder="98xxx xxxxx"></label>
+      <label class="field">Password<input name="password" type="password" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters"></label>
+      <button class="btn btn-lg" type="submit">Create account</button>
+    </form>
+
+    <form id="f-forgot" data-mode="forgot" hidden style="display:flex;flex-direction:column;gap:14px">
+      <h2 style="font-size:26px">Reset your password</h2>
+      <p class="muted">Enter your email and we'll send you a reset link.</p>
+      <label class="field">Email<input name="email" type="email" required autocomplete="email"></label>
+      <button class="btn btn-lg" type="submit">Send reset link</button>
+      <button type="button" class="linkbtn" data-go="signin" style="align-self:flex-start">Back to sign in</button>
+    </form>
+
+    <form id="f-reset" data-mode="reset" hidden style="display:flex;flex-direction:column;gap:14px">
+      <h2 style="font-size:26px">Choose a new password</h2>
+      <label class="field">New password<input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+      <button class="btn btn-lg" type="submit">Save password</button>
     </form>
     <p class="muted" style="font-size:13px">By continuing you agree to our <a href="help.html#policies" style="text-decoration:underline">terms and privacy policy</a>.</p>
   </div>
-</div>
-<script>
-document.getElementById('login-form').addEventListener('submit',function(e){e.preventDefault();var f=new FormData(this);try{localStorage.setItem('ph_user',JSON.stringify({name:f.get('name'),phone:f.get('phone'),email:f.get('email')}));}catch(x){}location.href='account.html';});
-</script>''')
+</div>''',['login.js'])
 
-page('account.html','My account — Print Haus','Your orders, proofs and invoices.','''
+page('account.html','My account — Print Haus','Your orders, artwork and details.','''
 <div class="wrap section">
   <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:24px">
-    <div><p class="muted" id="hello">Welcome</p><h1 style="font-size:34px">My orders</h1></div>
-    <a class="btn" href="shop.html">Start a new order</a>
+    <div><p class="muted" id="hello">Loading…</p><h1 style="font-size:34px">My account</h1></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" href="shop.html">Start a new order</a><button class="btn btn-outline" id="logout">Sign out</button></div>
   </div>
-  <div id="orders" style="display:flex;flex-direction:column;gap:14px"></div>
+  <div class="two-col" style="padding-top:0">
+    <div class="main"><h2 style="font-size:22px">Orders</h2><div id="orders" style="display:flex;flex-direction:column;gap:14px"></div></div>
+    <aside style="display:flex;flex-direction:column;gap:16px">
+      <form class="panel" id="profile" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px">Your details</h2>
+        <label class="field">Name<input name="name" required></label><label class="field">Mobile<input name="phone" type="tel"></label>
+        <p class="muted" style="font-size:14px" id="email-line"></p><button class="btn" type="submit">Save</button></form>
+      <form class="panel" id="pw" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px">Change password</h2>
+        <label class="field">Current password<input name="current" type="password" autocomplete="current-password"></label>
+        <label class="field">New password<input name="next" type="password" minlength="8" required autocomplete="new-password"></label>
+        <button class="btn btn-outline" type="submit">Update password</button></form>
+    </aside>
+  </div>
 </div>''',['account.js'])
 
 page('bulk.html','Bulk & B2B printing — Print Haus','Trade pricing for 1,000+ pieces. Get a quote within one working day.','''
@@ -284,6 +321,17 @@ page('help.html','Help, FAQ & contact — Print Haus','Answers about proofs, del
   </aside>
 </div>
 <script>document.addEventListener('DOMContentLoaded',function(){var S=PH.S;document.getElementById('wa-help').href='https://wa.me/'+S.whatsapp;document.getElementById('contact-lines').innerHTML=PH.esc(S.phone)+'<br>'+PH.esc(S.email)+'<br>'+PH.esc(S.hours);});</script>''')
+
+page('admin.html','Admin — Print Haus','','''
+<div class="wrap section">
+  <h1 style="font-size:32px;margin-bottom:16px">Orders admin</h1>
+  <form id="key-form" class="panel" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;max-width:520px"><label class="field" style="flex:1">Admin key<input type="password" name="key" required></label><button class="btn" type="submit">Open</button></form>
+  <div id="admin" hidden>
+    <div class="trust" id="stats" style="margin-bottom:20px"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px"><input id="filter" placeholder="Search order, name, phone…" style="flex:1 1 280px;height:44px;padding:0 12px;border:1.5px solid var(--line);border-radius:4px"><button class="btn btn-outline" id="refresh" type="button">Refresh</button></div>
+    <div id="admin-orders" style="display:flex;flex-direction:column;gap:12px"></div>
+  </div>
+</div>''',['admin.js'])
 
 page('404.html','Page not found — Print Haus','','''
 <div class="wrap section" style="text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center"><h1 style="font-size:40px">Page not found</h1><p class="muted">The page you're looking for doesn't exist.</p><a class="btn" href="shop.html">Browse products</a></div>''')

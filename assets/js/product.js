@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const { catalog, prices, art, inr, price, esc, cart, toast, card, catUrl, S } = PH;
+  const { catalog, prices, art, inr, price, esc, cart, toast, card, catUrl, S, uploadFile, fmtSize } = PH;
   const slug = new URLSearchParams(location.search).get('p') || 'product-labels';
   const parse = (o) => { const m = {}; String(o).split(' | ').forEach((p) => { const i = p.indexOf(': '); if (i > 0) m[p.slice(0, i)] = p.slice(i + 2); }); return m; };
   const box = document.getElementById('p-options');
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('p-related').innerHTML = all.filter((c) => c.cat === meta.cat && c.slug !== slug).slice(0, 4).map(card).join('');
 
     prices(meta.file).then((d) => {
-      const st = { si: d.r[0][0], sel: {}, q: null, design: false };
+      const st = { si: d.r[0][0], sel: {}, q: null, design: false, upload: null };
       function render() {
         const rows = d.r.filter((r) => r[0] === st.si);
         let best = rows[0], score = -1;
@@ -43,7 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
           return `<button type="button" class="tier" data-q="${qq}" aria-pressed="${i === qi}"><strong>${qq.toLocaleString('en-IN')} pcs</strong><span class="muted">${inr(u, 2)} / pc</span><span>${sv > 0 ? `<span class="save">Save ${sv}%</span>` : ''}<strong>${inr(price(tt))}</strong></span></button>`;
         }).join('')}</div></div>`;
         html += `<fieldset class="opt-group"><legend>Your design</legend>
-          <label class="radio-card"><input type="radio" name="design" value="own" ${!st.design ? 'checked' : ''}><span><strong>I have my artwork</strong><small>Share it on WhatsApp or email after ordering</small></span></label>
+          <label class="radio-card"><input type="radio" name="design" value="own" ${!st.design ? 'checked' : ''}><span><strong>I have my artwork</strong><small>Upload it now, or later from your cart</small></span></label>
+          ${!st.design ? `<label class="upload" id="up-box"><input type="file" id="up-input" accept=".pdf,.ai,.eps,.cdr,.psd,.svg,.png,.jpg,.jpeg,.tif,.tiff,.zip">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" style="flex:none"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+            <span style="display:flex;flex-direction:column"><strong id="up-title">${st.upload ? '✓ ' + esc(st.upload.filename) : 'Upload artwork'}</strong><small class="muted" id="up-sub">${st.upload ? fmtSize(st.upload.size) + ' · click to replace' : 'PDF, AI, CDR, PSD, PNG, JPG, TIFF or ZIP · up to 50 MB'}</small></span></label>` : ''}
           <label class="radio-card"><input type="radio" name="design" value="hire" ${st.design ? 'checked' : ''}><span><strong>Design it for me · +${inr(S.designServiceFee)}</strong><small>Send your logo and text, we set it up</small></span></label></fieldset>`;
         html += `<div class="summary">
           <div class="row"><span style="opacity:.85">${q.toLocaleString('en-IN')} pcs · ${esc(d.s[st.si])}${st.design ? ' · design service' : ''}</span><span>${inr(sub)}</span></div>
@@ -57,7 +60,16 @@ document.addEventListener('DOMContentLoaded', () => {
         box.querySelectorAll('.pill').forEach((b) => b.addEventListener('click', () => { st.sel = { ...cur, [b.dataset.k]: b.dataset.v }; render(); }));
         box.querySelectorAll('.tier').forEach((b) => b.addEventListener('click', () => { st.q = Number(b.dataset.q); render(); }));
         box.querySelectorAll('input[name=design]').forEach((r) => r.addEventListener('change', () => { st.design = r.value === 'hire'; render(); }));
-        const add = () => cart.add({ slug, name: meta.name, kind: meta.kind, size: d.s[st.si], options: d.o[best[1]] === 'Standard' ? '' : d.o[best[1]], qty: q, design: st.design, price: sub });
+        const upIn = document.getElementById('up-input');
+        if (upIn) upIn.addEventListener('change', () => {
+          const f = upIn.files[0]; if (!f) return;
+          const t = document.getElementById('up-title'), sb = document.getElementById('up-sub');
+          t.textContent = 'Uploading ' + f.name + '…'; sb.textContent = '0%';
+          uploadFile(f, (pc) => { sb.textContent = pc + '%'; })
+            .then((u) => { st.upload = u; toast('Artwork uploaded'); render(); })
+            .catch((e) => { t.textContent = 'Upload artwork'; sb.textContent = e.message; });
+        });
+        const add = () => cart.add({ slug, name: meta.name, kind: meta.kind, size: d.s[st.si], options: d.o[best[1]] === 'Standard' ? '' : d.o[best[1]], qty: q, design: st.design, price: sub, uploadId: !st.design && st.upload ? st.upload.id : null, uploadName: !st.design && st.upload ? st.upload.filename : null });
         document.getElementById('add-cart').addEventListener('click', () => { add(); toast('Added to cart'); });
         document.getElementById('buy-now').addEventListener('click', () => { add(); location.href = 'checkout.html'; });
       }
