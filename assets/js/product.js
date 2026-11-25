@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const { catalog, prices, art, inr, price, esc, cart, toast, card, catUrl, S, uploadFile, fmtSize } = PH;
+  const { catalog, prices, art, inr, price, esc, cart, toast, card, catUrl, S, uploadFile, fmtSize, imgUrl } = PH;
   const slug = new URLSearchParams(location.search).get('p') || 'product-labels';
   const parse = (o) => { const m = {}; String(o).split(' | ').forEach((p) => { const i = p.indexOf(': '); if (i > 0) m[p.slice(0, i)] = p.slice(i + 2); }); return m; };
   const box = document.getElementById('p-options');
@@ -12,7 +12,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('crumb-name').textContent = meta.name;
     const cc = document.getElementById('crumb-cat'); cc.textContent = meta.cat; cc.href = catUrl(meta.cat);
     document.getElementById('p-meta').textContent = `Minimum order ${meta.moq.toLocaleString('en-IN')} pcs · ${meta.sizes} ${meta.sizes === 1 ? 'size' : 'sizes'} · free design check before printing`;
-    document.getElementById('p-art').innerHTML = art(meta.kind);
+    const pa = document.getElementById('p-art');
+    if (meta.imgs.length) {
+      pa.classList.remove('tint'); pa.style.background = '#fff';
+      pa.innerHTML = `<img id="p-main" src="${imgUrl(meta.imgs[0])}" alt="${esc(meta.name)}" style="width:100%;height:100%;object-fit:cover">`;
+      if (meta.imgs.length > 1) {
+        const th = document.createElement('div'); th.className = 'thumbs';
+        th.innerHTML = meta.imgs.map((f, i) => `<button type="button" aria-label="View photo ${i + 1}" aria-pressed="${i === 0}" data-i="${i}"><img src="${imgUrl(f, true)}" alt="" loading="lazy"></button>`).join('');
+        pa.after(th);
+        th.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; document.getElementById('p-main').src = imgUrl(meta.imgs[+b.dataset.i]); th.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b)); });
+      }
+    } else pa.innerHTML = art(meta.kind);
     document.getElementById('p-related').innerHTML = all.filter((c) => c.cat === meta.cat && c.slug !== slug).slice(0, 4).map(card).join('');
 
     prices(meta.file).then((d) => {
@@ -69,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then((u) => { st.upload = u; toast('Artwork uploaded'); render(); })
             .catch((e) => { t.textContent = 'Upload artwork'; sb.textContent = e.message; });
         });
-        const add = () => cart.add({ slug, name: meta.name, kind: meta.kind, size: d.s[st.si], options: d.o[best[1]] === 'Standard' ? '' : d.o[best[1]], qty: q, design: st.design, price: sub, uploadId: !st.design && st.upload ? st.upload.id : null, uploadName: !st.design && st.upload ? st.upload.filename : null });
+        const add = () => cart.add({ slug, name: meta.name, kind: meta.kind, img: meta.imgs[0] || null, size: d.s[st.si], options: d.o[best[1]] === 'Standard' ? '' : d.o[best[1]], qty: q, design: st.design, price: sub, uploadId: !st.design && st.upload ? st.upload.id : null, uploadName: !st.design && st.upload ? st.upload.filename : null });
         document.getElementById('add-cart').addEventListener('click', () => { add(); toast('Added to cart'); });
         document.getElementById('buy-now').addEventListener('click', () => { add(); location.href = 'checkout.html'; });
       }

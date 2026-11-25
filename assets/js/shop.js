@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const q = (params.get('q') || '').trim().toLowerCase();
   let sort = 'pop', limit = 24;
   const POP = ['product-labels', 'mailer-box', 'standard-business-cards', 'custompaperbox', 'paper-bag', 'sticker-sheets', 'flat-thank-you-cards', 'hang-tags', 'foil-stickers-fb', 'bottle-jar-labels', 'pack-tape', 'premium-paper-bag'];
-  const rank = (c) => { const i = POP.indexOf(c.slug); return i < 0 ? 999 : i; };
+  const rank = (c) => { const i = POP.indexOf(c.slug); return i < 0 ? (c.imgs.length ? 500 : 999) : i; };
   const sortEl = document.getElementById('shop-sort');
   catalog().then((all) => {
     function render() {

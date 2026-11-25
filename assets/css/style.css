@@ -204,3 +204,10 @@ thead th{background:var(--soft);border-top:0}
   .assure{grid-template-columns:1fr}
 }
 #p-options{display:flex;flex-direction:column;gap:20px}
+
+.art img{display:block}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px}
+.thumbs button{padding:0;border:2px solid transparent;border-radius:var(--radius);overflow:hidden;background:none;aspect-ratio:1}
+.thumbs button[aria-pressed=true]{border-color:var(--ink)}
+.thumbs img{width:100%;height:100%;object-fit:cover}
+.product-media .art{aspect-ratio:1;height:auto;max-height:560px}
